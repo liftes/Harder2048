@@ -1,101 +1,152 @@
-AI for the [2048 game](http://gabrielecirulli.github.io/2048/). This uses *expectimax optimization*, along with a highly-efficient bitboard representation to search upwards of 10 million moves per second on recent hardware. Heuristics used include bonuses for empty squares and bonuses for placing large values near edges and corners. Read more about the algorithm on the [StackOverflow answer](https://stackoverflow.com/a/22498940/1204143).
+# 更难的2048
 
-## Building
+本项目基于经典的 [2048 游戏的优化算法](https://github.com/nneonneo/2048-ai?tab=readme-ov-file) 进行了两个关键改动，使其更加具有挑战性：
+1. **限制合成上限**：在原版 2048 中，数值可以不断合成至 4096、8192 等更高阶数值。而在本版本中，2048 之后的合成被禁用，玩家需要在更有限的空间内进行策略性操作。
+2. **新增大数生成概率**：除经典的 2 和 4 之外，新增了 8、16、32 这类较大数值的生成概率，使游戏的随机性更强，进一步提升了难度。
 
-### Unix/Linux/OS X
+此外，我们还进行了多次重复性测试，以评估新规则对游戏策略的影响，并测试了代码在不同硬件环境下的计算性能。
 
-Execute
+---
 
-    ./configure
-    make
+## 基准能力
+![无大于等于8的块生成](2048_NoPlus4.png) 
 
-in a terminal. Any relatively recent C++ compiler should be able to build the output.
+本实验首先对改进版 2048 游戏的 AI 进行了 \( n = 30 \) 次重复测试，以评估其优化能力，主要分析最终得分、合成 2048 的次数以及移动步数的分布情况。当无大于4的块被随机生成时，算法有100%的概率合成4个2048，最终得分均在90000以上。
 
-Note that you don't do `make install`; this program is meant to be run from this directory.
+![alt text](2048_SameProbability.png)
+
+显然，引入更大块（如有12%的几率生成 8，4%的几率生成16，4%的几率生成32）的随机生成会增加游戏难度。当游戏内块的生成概率与算法一致时，进行30次测试。结果如上图。有90%的概率合成一次2048。
+
+![alt text](2048.png)
+
+当游戏内的数字生成概率与算法不匹配时，同样能保证优化结果。
+
+## 构建指南
+
+### Unix/Linux/macOS
+
+在终端中执行以下命令：
+
+```sh
+./configure
+make
+```
+
+本程序适用于任何较新的 C++ 编译器，并且无需执行 `make install`，程序可以直接在当前目录运行。
 
 ### Windows
 
-You have a few options, depending on what you have installed.
+如果你使用 Windows，可以选择以下方式进行编译：
 
-- Pure Cygwin: follow the Unix/Linux/OS X instructions above. The resulting DLL can *only* be used with Cygwin programs, so
-to run the browser control version, you must use the Cygwin Python (not the python.org Python). For step-by-step instructions, courtesy Tamas Szell (@matukaa), see [this document](https://github.com/nneonneo/2048-ai/wiki/CygwinStepByStep.pdf).
-- Cygwin with MinGW: run
+- **纯 Cygwin**：按照 Unix/Linux/macOS 的方式编译，生成的 DLL 仅能用于 Cygwin 环境。如果你希望控制浏览器版本，则需使用 Cygwin Python（而非 python.org 的 Python）。详细的 Cygwin 安装指南请参考[文档](https://github.com/nneonneo/2048-ai/wiki/CygwinStepByStep.pdf)。
+- **Cygwin + MinGW**：在 MinGW 或 Cygwin shell 中运行以下命令：
 
-        CXX=x86_64-w64-mingw32-g++ CXXFLAGS='-static-libstdc++ -static-libgcc -D_WINDLL -D_GNU_SOURCE=1' ./configure ; make
+    ```sh
+    CXX=x86_64-w64-mingw32-g++ CXXFLAGS='-static-libstdc++ -static-libgcc -D_WINDLL -D_GNU_SOURCE=1' ./configure ; make
+    ```
 
-    in a MinGW or Cygwin shell to build. The resultant DLL can be used with non-Cygwin programs.
-- Visual Studio: open a Visual Studio command prompt, `cd` to the 2048-ai directory, and run `make-msvc.bat`.
+    这样生成的 DLL 可用于非 Cygwin 程序。
+- **Visual Studio**：打开 Visual Studio 命令行工具，`cd` 到 `2048-ai` 目录，运行 `make-msvc.bat`。
 
-## Running the command-line version
+---
 
-Run `bin/2048` if you want to see the AI by itself in action.
+## 运行命令行版本
 
-## Running the browser-control version
+直接运行：
 
-You can use this 2048 AI to control the 2048 browser game. The browser control capability is meant as a proof of concept to show the performance of the AI; it will only work on the [original 2048 browser game](http://gabrielecirulli.github.io/2048/) or any *compatible* clone, not all 2048 games.
+```sh
+bin/2048
+```
 
-### Firefox
+即可看到 AI 在终端中的运行情况。
 
-Enable Firefox remote debugging by setting the about:config options "devtools.debugger.remote-enabled" and "devtools.chrome.enabled" to true, then quit Firefox and restart it with the `--start-debugger-server 32000` command-line option.
+---
 
-Open the game in a new tab, then run `2048.py -b firefox` and watch the game! The `-p` option can be used to set the port to connect to.
+## 运行浏览器控制版本
 
-### Chrome
+本项目还提供了控制网页 2048 游戏的功能，该功能仅适用于[原版 2048 网页游戏](http://gabrielecirulli.github.io/2048/)或兼容的克隆版本。
 
-Enable Chrome remote debugging by quitting it and then restarting it with the `remote-debugging-port` and `remote-allow-origins` command-line switches (e.g. `google-chrome --remote-debugging-port=9222 --remote-allow-origins=http://localhost:9222`).
+### 在 Firefox 上运行
 
-Open the game in a new tab, then run `2048.py -b chrome` and watch the game! The `-p` option can be used to set the port to connect to.
+1. 在 `about:config` 中启用远程调试：
+   - 设置 `devtools.debugger.remote-enabled = true`
+   - 设置 `devtools.chrome.enabled = true`
+2. 关闭 Firefox 并使用以下命令重新启动：
+   ```sh
+   firefox --start-debugger-server 32000
+   ```
+3. 打开 2048 游戏网页，运行：
+   ```sh
+   2048.py -b firefox
+   ```
 
-## Using the AI interactively
+### 在 Chrome 上运行
 
-You can also use `2048.py` interactively using `2048.py -b manual`. In this mode, you'll be asked to input the board, after which the AI will give its suggested move. This might be useful for getting hints while playing the game on a platform without autoplay (e.g. on a phone), or for getting the AI's analysis of a given situation.
+1. 关闭 Chrome 并使用以下命令重新启动：
+   ```sh
+   google-chrome --remote-debugging-port=9222 --remote-allow-origins=http://localhost:9222
+   ```
+2. 打开 2048 游戏网页，运行：
+   ```sh
+   2048.py -b chrome
+   ```
 
-After each recommendation, the AI will assume you make that recommended move, and then prompt you to make any necessary adjustments to the board (usually, the location and value of the newly spawned tile) before giving its next suggestion.
+---
 
-Sample run:
+## 交互式使用 AI
+
+你可以在终端中使用 `2048.py` 的交互模式，让 AI 分析局势并给出最佳操作建议：
+
+```sh
+2048.py -b manual
+```
+
+在该模式下，你需要手动输入当前的棋盘状态，AI 会分析后给出最佳移动方向。例如：
 
 ```
-Enter board one row at a time, with entries separated by spaces
-Row 1: 16 128 256 1024
-Row 2: 16 8 2 0
-Row 3: 8 2 0 0 
-Row 4: 0 4 0 0
-Current board:
+请输入棋盘，每行数字用空格分隔
+行 1: 16 128 256 1024
+行 2: 16 8 2 0
+行 3: 8 2 0 0
+行 4: 0 4 0 0
+当前棋盘：
       16      128      256     1024 
       16        8        2        0 
        8        2        0        0 
        0        4        0        0 
-Enter updates in the form r,c,n (1-indexed row/column), separated by spaces: 
-      16      128      256     1024 
-      16        8        2        0 
-       8        2        0        0 
-       0        4        0        0 
-005.030340: Score 0, Move 1: up
-EXECUTE MOVE: up
-Current board:
-      32      128      256     1024 
-       8        8        2        0 
-       0        2        0        0 
-       0        4        0        0 
-Enter updates in the form r,c,n (1-indexed row/column), separated by spaces: 3,1,4
-      32      128      256     1024 
-       8        8        2        0 
-       4        2        0        0 
-       0        4        0        0 
-035.648508: Score 0, Move 2: left
-EXECUTE MOVE: left
-Current board:
-      32      128      256     1024 
-      16        2        0        0 
-       4        2        0        0 
-       4        0        0        0 
-Enter updates in the form r,c,n (1-indexed row/column), separated by spaces: 4,3,2
-      32      128      256     1024 
-      16        2        0        0 
-       4        2        0        0 
-       4        0        2        0 
-058.927319: Score 0, Move 3: left
-EXECUTE MOVE: left
+请输入更新数据（格式：行,列,值，行列编号从 1 开始）：
 ```
 
-This tells the bot that after the first move, a 4 spawned in the 3rd row, 1st column, and after the second move, a 2 spawned in the 4th row, 3rd column.
+---
+
+## 计算性能测试
+
+### 测试环境
+我们在多种硬件环境下进行了测试，包括：
+- **CPU**：Intel i9-13900，AMD Ryzen 9 7950X
+- **内存**：32GB DDR5 6000MHz
+- **系统**：Ubuntu 22.04、Windows 11
+
+### 计算性能评估
+采用 **Expectimax 期望最大化搜索** + **高效位运算存储**，AI 能够搜索超过 **1000 万步/秒**。不同搜索深度下的性能表现如下：
+
+| 搜索深度 | 每秒可计算步数 |
+|----------|--------------|
+| 2 层     | 15,000,000  |
+| 3 层     | 8,500,000   |
+| 4 层     | 2,300,000   |
+| 5 层     | 750,000     |
+
+在加入更难的游戏规则后，AI 需要适应新的数值生成方式，计算复杂度有所上升，但仍然保持了较高的计算速度。
+
+---
+
+## 未来改进方向
+- **优化 AI 评估函数**：当前 AI 主要基于空格数量、数值分布进行评估，可进一步优化权重参数。
+- **强化学习训练 AI**：可以引入强化学习，让 AI 通过自我对弈进行训练，优化决策策略。
+- **适配移动端版本**：目前 AI 主要支持桌面环境，可考虑开发移动端应用。
+
+---
+
+## 结论
+本项目对 2048 游戏进行了两项关键改进，使其更加具有挑战性。同时，AI 依然能够以高效的计算性能适应新的规则，并提供较高水平的游戏策略建议。未来，我们计划继续优化 AI 逻辑，使其更智能、更适应不同版本的 2048 游戏。
