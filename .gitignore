@@ -1,6 +1,7 @@
 bin/
 *.pyc
 *~
+*.pdf
 
 # autoconf intermediates
 aclocal.m4

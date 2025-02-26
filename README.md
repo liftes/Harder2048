@@ -62,83 +62,39 @@ bin/2048
 
 ---
 
-## 运行浏览器控制版本
-
-本项目还提供了控制网页 2048 游戏的功能，该功能仅适用于[原版 2048 网页游戏](http://gabrielecirulli.github.io/2048/)或兼容的克隆版本。
-
-### 在 Firefox 上运行
-
-1. 在 `about:config` 中启用远程调试：
-   - 设置 `devtools.debugger.remote-enabled = true`
-   - 设置 `devtools.chrome.enabled = true`
-2. 关闭 Firefox 并使用以下命令重新启动：
-   ```sh
-   firefox --start-debugger-server 32000
-   ```
-3. 打开 2048 游戏网页，运行：
-   ```sh
-   2048.py -b firefox
-   ```
-
-### 在 Chrome 上运行
-
-1. 关闭 Chrome 并使用以下命令重新启动：
-   ```sh
-   google-chrome --remote-debugging-port=9222 --remote-allow-origins=http://localhost:9222
-   ```
-2. 打开 2048 游戏网页，运行：
-   ```sh
-   2048.py -b chrome
-   ```
-
----
-
 ## 交互式使用 AI
 
-你可以在终端中使用 `2048.py` 的交互模式，让 AI 分析局势并给出最佳操作建议：
+你可以在终端中使用 `2048_ai.py` 的交互模式，让 AI 分析局势并给出最佳操作建议。
 
-```sh
-2048.py -b manual
+
+
+1. **准备棋盘数据：**
+   你需要提供一个包含 16 个整数的平面列表（0-16），代表当前棋盘的状态。棋盘中的每个数字表示相应位置上的方块（例如：2, 4, 8, 16）。
+
+2. **运行脚本：**
+   使用命令行来执行脚本并传入棋盘数据：
+
+   ```bash
+   python 2048_ai.py -b 2 4 8 16 2 4 8 16 2 4 8 16 2 4 8 16
+   ```
+3. **获得输出**
 ```
-
-在该模式下，你需要手动输入当前的棋盘状态，AI 会分析后给出最佳移动方向。例如：
-
+   Current board:
+         1        2        3        4 
+         1        2        3        4 
+         1        2        3        4 
+         1        2        3        4 
+   -------------------
+         2        4        8       16 
+         2        4        8       16 
+         2        4        8       16 
+         2        4        8       16 
+   Move 2: result 0.000000: eval'd 0 moves (0 cache hits, 0 cache size) in 0.00 seconds (maxdepth=0)
+   Move 3: result 0.000000: eval'd 0 moves (0 cache hits, 0 cache size) in 0.00 seconds (maxdepth=0)
+   Move 0: result 1587835.125000: eval'd 522880 moves (37187 cache hits, 5544 cache size) in 0.00 seconds (maxdepth=5)
+   Move 1: result 1587790.250000: eval'd 517976 moves (36982 cache hits, 5563 cache size) in 0.00 seconds (maxdepth=5)
+   0
 ```
-请输入棋盘，每行数字用空格分隔
-行 1: 16 128 256 1024
-行 2: 16 8 2 0
-行 3: 8 2 0 0
-行 4: 0 4 0 0
-当前棋盘：
-      16      128      256     1024 
-      16        8        2        0 
-       8        2        0        0 
-       0        4        0        0 
-请输入更新数据（格式：行,列,值，行列编号从 1 开始）：
-```
-
----
-
-## 计算性能测试
-
-### 测试环境
-我们在多种硬件环境下进行了测试，包括：
-- **CPU**：Intel i9-13900，AMD Ryzen 9 7950X
-- **内存**：32GB DDR5 6000MHz
-- **系统**：Ubuntu 22.04、Windows 11
-
-### 计算性能评估
-采用 **Expectimax 期望最大化搜索** + **高效位运算存储**，AI 能够搜索超过 **1000 万步/秒**。不同搜索深度下的性能表现如下：
-
-| 搜索深度 | 每秒可计算步数 |
-|----------|--------------|
-| 2 层     | 15,000,000  |
-| 3 层     | 8,500,000   |
-| 4 层     | 2,300,000   |
-| 5 层     | 750,000     |
-
-在加入更难的游戏规则后，AI 需要适应新的数值生成方式，计算复杂度有所上升，但仍然保持了较高的计算速度。
-
 ---
 
 ## 未来改进方向
